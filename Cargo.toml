@@ -1,0 +1,45 @@
+[package]
+name = "ringo-music"
+version = "0.1.0"
+edition = "2021"
+description = "Lightweight TeamSpeak 3 music bot (Netease Cloud Music, Bilibili and direct links)"
+license = "MIT"
+repository = "https://github.com/Ringophilia/Ringo-Music-Bot"
+readme = "README.md"
+
+[dependencies]
+# TS3 client protocol. No libopus / OpenSSL: ffmpeg does the Opus encoding.
+tsclientlib = { git = "https://github.com/ReSpeak/tsclientlib", rev = "ee3bc6f", default-features = false }
+tsproto-packets = { git = "https://github.com/ReSpeak/tsclientlib", rev = "ee3bc6f" }
+tsproto-types = { git = "https://github.com/ReSpeak/tsclientlib", rev = "ee3bc6f" }
+tokio = { version = "1", features = ["rt", "macros", "process", "io-util", "time", "sync", "signal", "fs"] }
+futures = "0.3"
+anyhow = "1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+reqwest = { version = "0.13", default-features = false, features = ["rustls-no-provider", "json", "form", "stream", "gzip", "charset"] }
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.9"
+aes = "0.8"
+md-5 = "0.10"
+hex = "0.4"
+rand = "0.9"
+regex-lite = "0.1"
+qrcode = { version = "0.14", default-features = false }
+libc = "0.2"
+
+[profile.release]
+opt-level = "s"
+lto = "fat"
+codegen-units = 1
+strip = true
+
+# Quick builds while developing: FAST=1 bash build.sh
+[profile.fast]
+inherits = "release"
+opt-level = 1
+lto = false
+codegen-units = 16
+incremental = true

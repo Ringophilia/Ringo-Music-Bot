@@ -1,0 +1,51 @@
+# ringo-music 配置。改完后：sudo systemctl restart ringo-music
+
+[ts]
+address = "127.0.0.1:9987"     # 和 TS 服务器同机，走本机回环，不占公网带宽
+password = ""                  # TS 服务器密码
+channel_id = 0                 # 进入的频道 ID（0 = 默认频道）
+channel_password = ""
+nickname = "🎵 点歌机"
+# 被 !来 叫到别的频道后，那里没人超过这么多秒就自己回 channel_id（0 = 不回）
+return_home_secs = 300
+# 沿用旧 TS3AudioBot 的身份（bots/default/bot.toml 里的 key / offset），
+# 这样点歌机保留原来的服务器组和权限。只在第一次启动时用，之后存到 identity.json。
+identity_key = ""
+identity_offset = 0
+
+[audio]
+ffmpeg = "ffmpeg"
+# 发给 TS 的 Opus 码率。TS 服务器会给频道里每个人各发一份：
+# 上行占用 ≈ (码率 + 约 18 kbps 包头) × 听众数。64k 音乐已经很清楚，48k 更省。
+bitrate_kbps = 64
+# Opus 帧长 20 / 40 / 60 ms。帧越长包头越少（60 ms 约省 12 kbps/人），
+# 但 TS 客户端按 20 ms 设计，改大前先自己听一下。
+frame_ms = 20
+volume = 40          # 默认音量 0-100（40 ≈ -16 dB）
+max_volume = 80      # 用户能调到的上限
+normalize = true     # 使用网易云提供的响度增益，让每首歌音量接近
+
+[netease]
+# 推荐用 `ringo-music login` 扫码登录（写入 netease_cookie.txt，优先于这里）。
+# 不登录也能放免费歌曲；会员歌曲只有 30 秒试听。只登录你自己的账号。
+cookie = ""
+# standard 128k | higher 192k | exhigh 320k | lossless
+# 最终都会转成上面的 Opus 码率，192k 源已经足够，320k 只多耗下行和缓存空间。
+quality = "higher"
+
+[cache]
+enabled = true       # 放过的网易云歌曲存本地，再点不走网络
+max_mb = 2048        # 缓存上限，超出后删最久没放的
+min_free_mb = 2048   # 磁盘剩余空间低于这个值时不再缓存新歌（服务器还跑着别的服务）
+download_kbps = 1500 # 下载限速，防止拉歌时把入口带宽占满导致语音丢包
+
+[bot]
+pause_when_alone = true     # 频道里没人（或都关了扬声器）时停止发送，人来了自动继续
+max_queue = 2000
+max_bots = 3                # 最多同时几个点歌机（含主点歌机），每个占一个 TS 名额；1 = 不开临时点歌机
+temp_idle_secs = 180        # 临时点歌机没人或闲置这么多秒后自动退出
+max_playlist_import = 2000  # 歌单 / 专辑最多导入多少首（不超过 max_queue）
+search_results = 8
+ytdlp = "yt-dlp"            # B 站等其他网站的链接靠它解析
+ytdlp_cookies = ""          # 可选：自己账号导出的 cookies.txt（Netscape 格式），B 站偶尔拒绝机房 IP 时有用
+bilibili_fallback = false   # 网易云没有完整音源时，按歌名搜 B 站播放（默认关闭；连续失败 3 次会暂停 10 分钟）
